@@ -31,9 +31,12 @@ app.use(cors({
 
 app.use(express.json());
 
-// ✅ BASE_URL
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
-console.log("✅ Server running on:", BASE_URL);
+// ✅ BASE_URL (Dynamic for production)
+const getBaseUrl = (req) => {
+  const protocol = req.protocol;
+  const host = req.get('host');
+  return `${protocol}://${host}`;
+};
 
 // ✅ DB Connection
 mongoose.connect(process.env.DATABASE_URL)
@@ -66,7 +69,7 @@ app.post("/api/short", async (req, res) => {
     }
 
     const shortId = nanoid(8);
-    const shortLink = `${BASE_URL}/${shortId}`;
+    const shortLink = `${getBaseUrl(req)}/${shortId}`;
     
     console.log("Generated:", shortLink);
 
@@ -111,5 +114,21 @@ app.get("/api/health", (req, res) => {
 // ✅ Start Server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📝 BASE_URL: ${BASE_URL}`);
-});
+  console.log(`📝 Dynamic BASE_URL will be determined from requests`);
+}); // OLD (static):
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+
+// NEW (dynamic):
+const getBaseUrl = (req) => {
+  const protocol = req.protocol;
+  const host = req.get('host');
+  return `${protocol}://${host}`;
+};// OLD:
+const shortLink = `${BASE_URL}/${shortId}`;
+
+// NEW:
+const shortLink = `${getBaseUrl(req)}/${shortId}`;// OLD:
+const shortLink = `${BASE_URL}/${shortId}`;
+
+// NEW:
+const shortLink = `${getBaseUrl(req)}/${shortId}`;
