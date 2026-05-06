@@ -39,9 +39,17 @@ const getBaseUrl = (req) => {
 };
 
 // ✅ DB Connection
+if (!process.env.DATABASE_URL) {
+  console.error("❌ DATABASE_URL environment variable is not set!");
+  process.exit(1);
+}
+
 mongoose.connect(process.env.DATABASE_URL)
   .then(() => console.log("✅ DB connected"))
-  .catch((err) => console.log("❌ DB error:", err));
+  .catch((err) => {
+    console.error("❌ DB connection failed:", err);
+    process.exit(1);
+  });
 
 // ✅ Schema
 const urlSchema = new mongoose.Schema({
@@ -115,20 +123,19 @@ app.get("/api/health", (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📝 Dynamic BASE_URL will be determined from requests`);
-}); // OLD (static):
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+}).on('error', (err) => {
+  console.error('❌ Server failed to start:', err);
+  process.exit(1);
+});// ✅ Added DATABASE_URL validation
+if (!process.env.DATABASE_URL) {
+  console.error("❌ DATABASE_URL environment variable is not set!");
+  process.exit(1);
+}
 
-// NEW (dynamic):
-const getBaseUrl = (req) => {
-  const protocol = req.protocol;
-  const host = req.get('host');
-  return `${protocol}://${host}`;
-};// OLD:
-const shortLink = `${BASE_URL}/${shortId}`;
-
-// NEW:
-const shortLink = `${getBaseUrl(req)}/${shortId}`;// OLD:
-const shortLink = `${BASE_URL}/${shortId}`;
-
-// NEW:
-const shortLink = `${getBaseUrl(req)}/${shortId}`;
+// ✅ Added server error handling
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+}).on('error', (err) => {
+  console.error('❌ Server failed to start:', err);
+  process.exit(1);
+});
