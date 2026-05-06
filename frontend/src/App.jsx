@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 
 const App = () => {
@@ -16,7 +16,7 @@ const App = () => {
 
     try {
       new URL(originalUrl);
-    } catch (error) {
+    } catch {
       setError("Please enter a valid URL (include http:// or https://)");
       return;
     }
