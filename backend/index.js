@@ -126,16 +126,4 @@ app.listen(PORT, () => {
 }).on('error', (err) => {
   console.error('❌ Server failed to start:', err);
   process.exit(1);
-});// ✅ Added DATABASE_URL validation
-if (!process.env.DATABASE_URL) {
-  console.error("❌ DATABASE_URL environment variable is not set!");
-  process.exit(1);
-}
-
-// ✅ Added server error handling
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-}).on('error', (err) => {
-  console.error('❌ Server failed to start:', err);
-  process.exit(1);
 });
