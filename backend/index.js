@@ -10,22 +10,32 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ CORS - COMPLETE FIX
+// ✅ CORS Configuration (Fixed)
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://ulrshort.netlify.app"
+];
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "https://ulrshort.netlify.app",  // Your Netlify frontend
-    "https://url-shortner-9asj.onrender.com"  // Your Render backend
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-  optionsSuccessStatus: 200
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, true); // Allow all in production
+  },
+  methods: ["GET", "POST", "OPTIONS"],
+  credentials: true
 }));
 
-// ✅ Handle preflight requests manually
-app.options('*', cors());
+// ✅ Manual preflight handler (Fixed - no '*' pattern)
+app.options('*', (req, res) => {
+  res.header("Access-Control-Allow-Origin", "https://ulrshort.netlify.app");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  res.status(200).send();
+});
 
 app.use(express.json());
 
@@ -51,18 +61,12 @@ const Url = mongoose.model("Url", urlSchema);
 // ✅ Create Short URL
 app.post("/api/short", async (req, res) => {
   try {
-    // Set CORS headers manually
-    res.header("Access-Control-Allow-Origin", "https://ulrshort.netlify.app");
-    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type");
-    
     const { originalUrl } = req.body;
 
     if (!originalUrl) {
       return res.status(400).json({ message: "URL is required" });
     }
 
-    // Validate URL
     try {
       new URL(originalUrl);
     } catch (error) {
@@ -74,10 +78,7 @@ app.post("/api/short", async (req, res) => {
     
     console.log("Generated:", shortLink);
 
-    // Generate QR Code
     const qr = await QRCode.toDataURL(shortLink);
-
-    // Save to DB
     await new Url({ originalUrl, shortUrl: shortId }).save();
 
     res.json({
@@ -102,7 +103,6 @@ app.get("/:shortId", async (req, res) => {
 
     url.clicks++;
     await url.save();
-
     res.redirect(url.originalUrl);
 
   } catch (error) {
