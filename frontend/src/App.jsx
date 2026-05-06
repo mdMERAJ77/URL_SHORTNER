@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import axios from "axios";
 
 const App = () => {
+  const API = import.meta.env.VITE_API_URL;
   const [originalUrl, setOriginalUrl] = useState("");
   const [shortUrl, setShortUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = () => {
     setLoading(true);
-    axios
-      .post("http://localhost:3000/api/short", { originalUrl })
+    axios.post(`${API}/api/short`, { originalUrl })
       .then((res) => {
         setShortUrl(res.data);
         setLoading(false);
