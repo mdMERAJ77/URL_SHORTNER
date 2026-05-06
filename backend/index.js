@@ -29,14 +29,6 @@ app.use(cors({
   credentials: true
 }));
 
-// ✅ Manual preflight handler (Fixed - no '*' pattern)
-app.options('*', (req, res) => {
-  res.header("Access-Control-Allow-Origin", "https://ulrshort.netlify.app");
-  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
-  res.status(200).send();
-});
-
 app.use(express.json());
 
 // ✅ BASE_URL
