@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import axios from "axios";
 
 const App = () => {
-  // ✅ API URL - Render ka backend URL
   const API = "https://url-shortner-9asj.onrender.com";
   const [originalUrl, setOriginalUrl] = useState("");
   const [shortUrl, setShortUrl] = useState(null);
@@ -15,7 +14,6 @@ const App = () => {
       return;
     }
 
-    // Validate URL
     try {
       new URL(originalUrl);
     } catch (error) {
@@ -27,16 +25,28 @@ const App = () => {
     setError("");
     
     try {
-      const response = await axios.post(`${API}/api/short`, { 
-        originalUrl: originalUrl.trim() 
-      });
+      const response = await axios.post(`${API}/api/short`, 
+        { originalUrl: originalUrl.trim() },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: 30000 // 30 seconds timeout
+        }
+      );
       
       console.log("API Response:", response.data);
       setShortUrl(response.data);
       setOriginalUrl("");
     } catch (err) {
-      console.error("Error:", err);
-      setError(err.response?.data?.message || "Failed to shorten URL");
+      console.error("Full error:", err);
+      if (err.code === 'ERR_NETWORK') {
+        setError("Network error. Please check if backend server is running.");
+      } else if (err.response) {
+        setError(err.response.data?.message || "Server error");
+      } else {
+        setError("Failed to shorten URL. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
